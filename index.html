@@ -1,0 +1,1763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kinetic Folio — Systems Architecture & Creative Engineering</title>
+
+  <!-- Typography: Space Grotesk, Inter, JetBrains Mono & Instrument Serif -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400;500;600&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Space Grotesk"', 'Inter', 'sans-serif'],
+            serif: ['"Instrument Serif"', 'Georgia', 'serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            brand: {
+              emerald: '#10b981',
+              cyan: '#06b6d4',
+              sky: '#38bdf8'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    /* Dynamic Theme Variables */
+    :root {
+      --bg-base: #09090b;
+      --bg-surface: #121216;
+      --bg-surface-elevated: #18181f;
+      --text-primary: #f4f4f6;
+      --text-muted: #8b8b99;
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-strong: rgba(255, 255, 255, 0.18);
+      --accent: #10b981;
+      --accent-glow: rgba(16, 185, 129, 0.15);
+      --badge-bg: #f4f4f6;
+      --badge-text: #09090b;
+      --grid-line: rgba(255, 255, 255, 0.035);
+    }
+
+    [data-theme="alabaster"] {
+      --bg-base: #f7f6f2;
+      --bg-surface: #eceae3;
+      --bg-surface-elevated: #e2dfd7;
+      --text-primary: #121215;
+      --text-muted: #676774;
+      --border-subtle: rgba(18, 18, 21, 0.09);
+      --border-strong: rgba(18, 18, 21, 0.22);
+      --accent: #059669;
+      --accent-glow: rgba(5, 150, 105, 0.15);
+      --badge-bg: #121215;
+      --badge-text: #f7f6f2;
+      --grid-line: rgba(18, 18, 21, 0.04);
+    }
+
+    [data-theme="blueprint"] {
+      --bg-base: #040e1a;
+      --bg-surface: #091a2e;
+      --bg-surface-elevated: #0e2744;
+      --text-primary: #e0f2fe;
+      --text-muted: #7dd3fc;
+      --border-subtle: rgba(56, 189, 248, 0.14);
+      --border-strong: rgba(56, 189, 248, 0.32);
+      --accent: #38bdf8;
+      --accent-glow: rgba(56, 189, 248, 0.2);
+      --badge-bg: #38bdf8;
+      --badge-text: #040e1a;
+      --grid-line: rgba(56, 189, 248, 0.06);
+    }
+
+    body {
+      background-color: var(--bg-base);
+      color: var(--text-primary);
+      transition: background-color 0.4s ease, color 0.4s ease;
+      overflow-x: hidden;
+      cursor: default;
+    }
+
+    /* Custom Hairline Borders and Panels */
+    .folio-panel {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .folio-card {
+      background-color: var(--bg-surface-elevated);
+      border: 1px solid var(--border-subtle);
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .folio-card:hover {
+      border-color: var(--border-strong);
+      box-shadow: 0 10px 30px -10px var(--accent-glow);
+    }
+
+    .folio-pill {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      transition: all 0.2s ease;
+    }
+
+    .folio-pill:hover {
+      border-color: var(--border-strong);
+    }
+
+    .badge-solid {
+      background-color: var(--badge-bg);
+      color: var(--badge-text);
+    }
+
+    /* Subtle Architectural Grid Lines */
+    .hairline-grid {
+      background-image: 
+        linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+      background-size: 48px 48px;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg-base);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--border-strong);
+      border-radius: 3px;
+    }
+
+    /* Smooth focus rings */
+    input:focus, textarea:focus, select:focus {
+      outline: none;
+      border-color: var(--accent) !important;
+    }
+
+    /* Custom Cursor Ring */
+    #cursor-follower {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 28px;
+      height: 28px;
+      border: 1px solid var(--text-primary);
+      opacity: 0.28;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate3d(-100px, -100px, 0);
+      transition: transform 0.08s ease-out, width 0.2s ease, height 0.2s ease, opacity 0.2s ease;
+    }
+
+    /* Toast animation */
+    @keyframes slideToast {
+      from { transform: translateY(100%) scale(0.95); opacity: 0; }
+      to { transform: translateY(0) scale(1); opacity: 1; }
+    }
+    .toast-anim {
+      animation: slideToast 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+  </style>
+</head>
+<body class="selection:bg-emerald-400 selection:text-black min-h-screen relative font-sans" data-theme="obsidian">
+
+  <!-- Interactive Background Canvas -->
+  <canvas id="kinetic-canvas" class="fixed inset-0 pointer-events-none z-0"></canvas>
+
+  <!-- Custom Cursor Follower -->
+  <div id="cursor-follower" class="hidden md:block"></div>
+
+  <!-- Background Hairline Grid Overlay -->
+  <div class="fixed inset-0 hairline-grid pointer-events-none z-0 opacity-70"></div>
+
+  <!-- ===================================================================
+       TOP TELEMETRY & NAVIGATION CONTROLLER
+  =================================================================== -->
+  <header class="sticky top-0 z-40 backdrop-blur-md border-b border-[var(--border-subtle)] bg-[var(--bg-base)]/80">
+    <div class="max-w-7xl mx-auto px-4 sm:px-8 h-16 flex items-center justify-between gap-3">
+      
+      <!-- Brand & Quick Monogram Identifier -->
+      <div class="flex items-center gap-3">
+        <button id="btn-open-customizer-brand" class="flex items-center gap-2 group text-left" title="Click to customize identity">
+          <span id="header-monogram" class="badge-solid text-xs font-mono font-medium px-2 py-0.5 rounded">AS—26</span>
+          <span id="header-name" class="font-medium tracking-tight text-sm sm:text-base group-hover:underline">AARAV SHARMA</span>
+          <i data-lucide="edit-3" class="w-3.5 h-3.5 opacity-40 group-hover:opacity-100 transition-opacity"></i>
+        </button>
+
+        <div class="hidden lg:flex items-center gap-2 pl-3 border-l border-[var(--border-subtle)] text-xs font-mono text-[var(--text-muted)]">
+          <span class="relative flex h-2 w-2">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+          </span>
+          <span id="header-status" class="uppercase">AVAILABLE FOR WORK</span>
+        </div>
+      </div>
+
+      <!-- Live Center Telemetry Readout -->
+      <div class="hidden xl:flex items-center gap-6 font-mono text-[11px] text-[var(--text-muted)]">
+        <span id="telemetry-time">CLOCK: --:--:--</span>
+        <span id="telemetry-fps">60 FPS</span>
+        <span id="telemetry-pointer">PTR: 0000×0000</span>
+      </div>
+
+      <!-- Right HUD Action Buttons -->
+      <div class="flex items-center gap-2">
+        <!-- Canvas Visual Mode Switcher -->
+        <button id="btn-cycle-canvas" class="folio-pill px-2.5 py-1.5 rounded text-xs font-mono flex items-center gap-1.5" title="Cycle Canvas Physics [Key: C]">
+          <i data-lucide="sparkles" class="w-3.5 h-3.5 text-emerald-400"></i>
+          <span id="label-canvas-mode" class="hidden sm:inline uppercase">LATTICE</span>
+        </button>
+
+        <!-- Theme Polarity Switcher -->
+        <button id="btn-cycle-theme" class="folio-pill p-1.5 rounded text-xs font-mono" title="Switch Theme Polarity [Key: T]">
+          <i id="icon-theme" data-lucide="moon" class="w-4 h-4"></i>
+        </button>
+
+        <!-- Tactile Web Audio Sound Switcher -->
+        <button id="btn-toggle-sound" class="folio-pill p-1.5 rounded text-xs font-mono" title="Toggle Tactile Micro-Audio [Key: M]">
+          <i id="icon-sound" data-lucide="volume-2" class="w-4 h-4 text-emerald-400"></i>
+        </button>
+
+        <!-- Personalize Studio Modal Trigger -->
+        <button id="btn-open-customizer" class="badge-solid px-3 py-1.5 rounded text-xs font-mono font-medium flex items-center gap-1.5" title="Open Customization Studio [Key: P]">
+          <i data-lucide="sliders" class="w-3.5 h-3.5"></i>
+          <span class="hidden xs:inline">Personalize</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===================================================================
+       MAIN PORTFOLIO WORKSPACE
+  =================================================================== -->
+  <main class="relative z-10 max-w-7xl mx-auto px-4 sm:px-8 pt-10 sm:pt-16 pb-28">
+
+    <!-- Coordinates & Edition Strip -->
+    <div class="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-[var(--border-subtle)] font-mono text-xs text-[var(--text-muted)]">
+      <div class="flex items-center gap-2">
+        <i data-lucide="globe" class="w-3.5 h-3.5"></i>
+        <span id="strip-location">22.7196° N, 75.8577° E // INDORE, IN</span>
+      </div>
+      <div class="flex items-center gap-5">
+        <span>EDITION: 2026.04 // STABLE</span>
+        <span class="hidden sm:inline">GPU: ACCELERATED CANVAS</span>
+      </div>
+    </div>
+
+    <!-- =================================================================
+         HERO SECTION: EDITORIAL IMPACT
+    ================================================================= -->
+    <section class="py-12 sm:py-20 max-w-5xl">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full folio-pill font-mono text-xs text-[var(--text-muted)] mb-6">
+        <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+        <span id="hero-role-badge">SYSTEMS ARCHITECT & DIGITAL CRAFTSMAN</span>
+      </div>
+
+      <h1 class="text-4xl sm:text-6xl lg:text-7xl font-medium tracking-tight leading-[1.08]">
+        Engineering <span class="font-serif italic font-normal tracking-normal text-emerald-400">silent</span>, high-frequency digital interfaces where mathematical precision meets <span class="font-serif italic font-normal tracking-normal">tactile</span> minimalism.
+      </h1>
+
+      <p id="hero-tagline" class="mt-6 text-base sm:text-lg text-[var(--text-muted)] max-w-3xl leading-relaxed">
+        Building high-performance headless architectures, WebGL interactions, and ultra-responsive full-stack applications with near-zero latency.
+      </p>
+
+      <!-- Action Buttons Row -->
+      <div class="mt-10 flex flex-wrap items-center gap-3">
+        <a href="#projects-section" class="badge-solid px-5 py-3 rounded font-mono text-xs font-medium flex items-center gap-2 hover:opacity-90 active:scale-95 transition-all">
+          <span>EXPLORE WORKS</span>
+          <i data-lucide="arrow-down-right" class="w-4 h-4"></i>
+        </a>
+
+        <a href="#code-inspector-section" class="folio-pill px-4 py-3 rounded font-mono text-xs flex items-center gap-2 hover:border-[var(--border-strong)] transition-all">
+          <i data-lucide="git-branch" class="w-3.5 h-3.5 text-emerald-400"></i>
+          <span>INSPECT REPO & CODE</span>
+        </a>
+
+        <button id="btn-hero-copy-email" class="folio-pill px-4 py-3 rounded font-mono text-xs flex items-center gap-2 hover:border-[var(--border-strong)] transition-all">
+          <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+          <span id="hero-email-label">hello@yourdomain.dev</span>
+        </button>
+      </div>
+
+      <!-- Core Stack Chips -->
+      <div class="mt-12 pt-8 border-t border-[var(--border-subtle)] flex flex-wrap items-center gap-2">
+        <span class="font-mono text-[11px] text-[var(--text-muted)] uppercase tracking-wider mr-2">CORE CAPABILITIES:</span>
+        <span class="folio-pill px-2.5 py-1 rounded text-xs font-mono">React 19 & Next.js 15</span>
+        <span class="folio-pill px-2.5 py-1 rounded text-xs font-mono">TypeScript 5.x</span>
+        <span class="folio-pill px-2.5 py-1 rounded text-xs font-mono">Tailwind CSS 3.4</span>
+        <span class="folio-pill px-2.5 py-1 rounded text-xs font-mono">HTML5 Canvas / WebGL</span>
+        <span class="folio-pill px-2.5 py-1 rounded text-xs font-mono">Web Audio Synthesizer</span>
+        <span class="folio-pill px-2.5 py-1 rounded text-xs font-mono">Edge Compute / Redis</span>
+      </div>
+    </section>
+
+    <!-- =================================================================
+         SERVICES / ARCHITECTURAL DOMAINS
+    ================================================================= -->
+    <section class="py-12 border-t border-[var(--border-subtle)]">
+      <div class="flex items-center justify-between mb-8">
+        <div class="font-mono text-xs uppercase tracking-widest text-[var(--text-muted)]">
+          // 01 ARCHITECTURAL PILLARS
+        </div>
+        <div class="font-mono text-xs text-[var(--text-muted)]">
+          SPECIFICATION MATRIX
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Service 1 -->
+        <div class="folio-card p-6 rounded-lg flex flex-col justify-between">
+          <div>
+            <div class="w-8 h-8 rounded border border-[var(--border-subtle)] flex items-center justify-center font-mono text-xs text-emerald-400 mb-4">
+              01
+            </div>
+            <h3 class="text-lg font-medium tracking-tight">Headless Systems & APIs</h3>
+            <p class="text-xs text-[var(--text-muted)] mt-2 leading-relaxed">
+              Composable digital platforms using modern CMS backbones, sub-millisecond edge routes, and resilient GraphQL pipelines.
+            </p>
+          </div>
+          <div class="mt-6 pt-3 border-t border-[var(--border-subtle)] font-mono text-[10px] text-[var(--text-muted)]">
+            PERF: 99.9% / EDGE LATENCY < 30MS
+          </div>
+        </div>
+
+        <!-- Service 2 -->
+        <div class="folio-card p-6 rounded-lg flex flex-col justify-between">
+          <div>
+            <div class="w-8 h-8 rounded border border-[var(--border-subtle)] flex items-center justify-center font-mono text-xs text-emerald-400 mb-4">
+              02
+            </div>
+            <h3 class="text-lg font-medium tracking-tight">Kinetic & WebGL Interfaces</h3>
+            <p class="text-xs text-[var(--text-muted)] mt-2 leading-relaxed">
+              Hardware-accelerated mathematical animations, GPU shaders, custom physics engines, and smooth spring-inertia interactions.
+            </p>
+          </div>
+          <div class="mt-6 pt-3 border-t border-[var(--border-subtle)] font-mono text-[10px] text-[var(--text-muted)]">
+            RENDER: 60-120 FPS GPU SYNC
+          </div>
+        </div>
+
+        <!-- Service 3 -->
+        <div class="folio-card p-6 rounded-lg flex flex-col justify-between">
+          <div>
+            <div class="w-8 h-8 rounded border border-[var(--border-subtle)] flex items-center justify-center font-mono text-xs text-emerald-400 mb-4">
+              03
+            </div>
+            <h3 class="text-lg font-medium tracking-tight">Full-Stack Application Eng</h3>
+            <p class="text-xs text-[var(--text-muted)] mt-2 leading-relaxed">
+              Resilient enterprise full-stack development with strictly typed TypeScript, relational databases, and secure real-time protocols.
+            </p>
+          </div>
+          <div class="mt-6 pt-3 border-t border-[var(--border-subtle)] font-mono text-[10px] text-[var(--text-muted)]">
+            STANDARDS: ISO/TYPE-SAFE ACID
+          </div>
+        </div>
+
+        <!-- Service 4 -->
+        <div class="folio-card p-6 rounded-lg flex flex-col justify-between">
+          <div>
+            <div class="w-8 h-8 rounded border border-[var(--border-subtle)] flex items-center justify-center font-mono text-xs text-emerald-400 mb-4">
+              04
+            </div>
+            <h3 class="text-lg font-medium tracking-tight">Performance Optimization</h3>
+            <p class="text-xs text-[var(--text-muted)] mt-2 leading-relaxed">
+              Relentless audit and stripping of DOM reflows, critical render path tuning, and zero-bloat modular asset orchestration.
+            </p>
+          </div>
+          <div class="mt-6 pt-3 border-t border-[var(--border-subtle)] font-mono text-[10px] text-[var(--text-muted)]">
+            LIGHTHOUSE: 100/100 ALL METRICS
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================
+         PROJECTS SECTION & VIEW CONTROLLER
+    ================================================================= -->
+    <section id="projects-section" class="py-12 border-t border-[var(--border-subtle)]">
+      
+      <!-- Section Header & Switcher Bar -->
+      <div class="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-[var(--border-subtle)]">
+        <div>
+          <div class="font-mono text-xs uppercase tracking-widest text-[var(--text-muted)]">
+            // 02 ACTIVE ARTIFACTS & EXPERIMENTS
+          </div>
+          <div class="flex items-center gap-3 mt-1">
+            <h2 class="text-2xl font-medium tracking-tight">Project Directory</h2>
+            <span id="projects-counter-badge" class="font-mono text-xs px-2 py-0.5 rounded folio-pill text-[var(--text-muted)]">
+              03 ACTIVE
+            </span>
+          </div>
+        </div>
+
+        <!-- View Controls & Project Action Tools -->
+        <div class="flex flex-wrap items-center gap-2">
+          
+          <!-- View Switcher (Grid vs List) -->
+          <div class="flex items-center p-1 rounded folio-panel">
+            <button id="btn-view-grid" class="px-2.5 py-1 rounded text-xs font-mono flex items-center gap-1.5 transition-all badge-solid" title="Card Bento View [Key: 1]">
+              <i data-lucide="grid" class="w-3.5 h-3.5"></i>
+              <span>BENTO</span>
+            </button>
+            <button id="btn-view-list" class="px-2.5 py-1 rounded text-xs font-mono flex items-center gap-1.5 transition-all text-[var(--text-muted)] hover:text-[var(--text-primary)]" title="Ledger List View [Key: 2]">
+              <i data-lucide="list" class="w-3.5 h-3.5"></i>
+              <span>LEDGER</span>
+            </button>
+          </div>
+
+          <!-- Add Project Button -->
+          <button id="btn-open-add-project" class="folio-pill px-3 py-1.5 rounded text-xs font-mono flex items-center gap-1.5 hover:border-[var(--border-strong)] transition-all">
+            <i data-lucide="plus" class="w-3.5 h-3.5 text-emerald-400"></i>
+            <span>Add Project</span>
+          </button>
+
+          <!-- Reset / Blank Slate Button -->
+          <button id="btn-reset-slate" class="folio-pill px-2.5 py-1.5 rounded text-xs font-mono text-[var(--text-muted)] hover:text-rose-400 transition-colors" title="Toggle Clean Zero-Project Slate">
+            <i data-lucide="eraser" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Projects Container: Injected via JavaScript -->
+      <div id="projects-container" class="mt-8">
+        <!-- Rendered dynamically -->
+      </div>
+    </section>
+
+    <!-- =================================================================
+         CODE REPOSITORY & ARCHITECTURE INSPECTOR
+    ================================================================= -->
+    <section id="code-inspector-section" class="py-12 border-t border-[var(--border-subtle)]">
+      <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+        <div>
+          <div class="font-mono text-xs uppercase tracking-widest text-[var(--text-muted)]">
+            // 03 REPOSITORY BLUEPRINT & FILE INSPECTOR
+          </div>
+          <h2 class="text-2xl font-medium tracking-tight mt-1">Standalone Code Manifest</h2>
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="btn-copy-active-file" class="badge-solid px-3.5 py-2 rounded text-xs font-mono font-medium flex items-center gap-2 hover:opacity-90 active:scale-95 transition-all">
+            <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+            <span id="btn-copy-active-label">COPY CURRENT FILE</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Code Inspector Outer Box -->
+      <div class="folio-panel rounded-lg overflow-hidden border border-[var(--border-subtle)]">
+        
+        <!-- File Tab Navigation Bar -->
+        <div class="flex flex-wrap items-center justify-between border-b border-[var(--border-subtle)] bg-[var(--bg-base)]/50 px-3 py-2 gap-2">
+          <div class="flex items-center gap-1 overflow-x-auto">
+            <button class="code-tab-btn px-3 py-1.5 rounded font-mono text-xs flex items-center gap-2 badge-solid transition-all" data-file="App.jsx">
+              <i data-lucide="file-code" class="w-3.5 h-3.5 text-emerald-400"></i>
+              <span>App.jsx</span>
+            </button>
+            <button class="code-tab-btn px-3 py-1.5 rounded font-mono text-xs flex items-center gap-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-all" data-file="README.md">
+              <i data-lucide="file-text" class="w-3.5 h-3.5"></i>
+              <span>README.md</span>
+            </button>
+            <button class="code-tab-btn px-3 py-1.5 rounded font-mono text-xs flex items-center gap-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-all" data-file="package.json">
+              <i data-lucide="package" class="w-3.5 h-3.5"></i>
+              <span>package.json</span>
+            </button>
+            <button class="code-tab-btn px-3 py-1.5 rounded font-mono text-xs flex items-center gap-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-all" data-file="tailwind.config.js">
+              <i data-lucide="sliders" class="w-3.5 h-3.5"></i>
+              <span>tailwind.config.js</span>
+            </button>
+          </div>
+
+          <div class="font-mono text-[11px] text-[var(--text-muted)] flex items-center gap-3">
+            <span id="inspector-file-stats">248 LINES · UTF-8</span>
+            <span class="inline-block w-2 h-2 rounded-full bg-emerald-400"></span>
+          </div>
+        </div>
+
+        <!-- Code Content Block -->
+        <div class="relative bg-black/40 font-mono text-xs overflow-x-auto p-4 sm:p-6 max-h-[460px] leading-relaxed">
+          <pre id="code-display-block" class="text-emerald-300/90 whitespace-pre"><code>// Loading File Stream...</code></pre>
+        </div>
+
+        <!-- Step-by-Step Quick Deployment Guide Footer -->
+        <div class="p-4 sm:p-5 border-t border-[var(--border-subtle)] bg-[var(--bg-base)]/40 flex flex-wrap items-center justify-between gap-4 font-mono text-xs">
+          <div class="flex items-center gap-2 text-[var(--text-muted)]">
+            <i data-lucide="terminal" class="w-4 h-4 text-emerald-400"></i>
+            <span>RUN LOCALLY:</span>
+            <code class="px-2 py-0.5 rounded bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-[var(--text-primary)]">
+              npm create vite@latest folio -- --template react &amp;&amp; npm i lucide-react
+            </code>
+          </div>
+          <button id="btn-copy-install-cmd" class="text-[var(--text-muted)] hover:text-[var(--text-primary)] underline">
+            Copy setup command
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================
+         CONTACT & TERMINAL TRANSMISSION SECTION
+    ================================================================= -->
+    <section class="py-12 border-t border-[var(--border-subtle)]">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        
+        <div class="lg:col-span-5">
+          <div class="font-mono text-xs uppercase tracking-widest text-[var(--text-muted)]">
+            // 04 SECURE TRANSMISSION
+          </div>
+          <h2 class="text-3xl font-medium tracking-tight mt-1">Initiate Inquire</h2>
+          <p class="text-sm text-[var(--text-muted)] mt-3 leading-relaxed">
+            Direct routing to systems architect inbox. Have an ambitious platform, interactive 3D site, or high-performance contract? Dispatch your message below.
+          </p>
+
+          <div class="mt-6 space-y-2 font-mono text-xs text-[var(--text-muted)]">
+            <div class="flex items-center gap-2">
+              <i data-lucide="mail" class="w-3.5 h-3.5 text-emerald-400"></i>
+              <span id="contact-email-display">hello@yourdomain.dev</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <i data-lucide="clock" class="w-3.5 h-3.5 text-emerald-400"></i>
+              <span>RESPONSE WINDOW: &lt; 12 HOURS</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>
+              <span>PGP ENCRYPTED COMMUNICATIONS WELCOME</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Terminal Inquiry Form -->
+        <div class="lg:col-span-7">
+          <form id="inquiry-form" class="folio-panel rounded-lg p-6 space-y-4 border border-[var(--border-subtle)]">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block font-mono text-[11px] text-[var(--text-muted)] uppercase mb-1">Your Name / Organization</label>
+                <input type="text" id="form-name" required placeholder="Dr. Jane Doe / Studio Inc." class="w-full px-3.5 py-2.5 rounded bg-[var(--bg-base)] border border-[var(--border-subtle)] text-sm focus:border-emerald-400 transition-colors">
+              </div>
+              <div>
+                <label class="block font-mono text-[11px] text-[var(--text-muted)] uppercase mb-1">Return Transmission (Email)</label>
+                <input type="email" id="form-email" required placeholder="jane@studio.dev" class="w-full px-3.5 py-2.5 rounded bg-[var(--bg-base)] border border-[var(--border-subtle)] text-sm focus:border-emerald-400 transition-colors">
+              </div>
+            </div>
+
+            <div>
+              <label class="block font-mono text-[11px] text-[var(--text-muted)] uppercase mb-1">Project Scope & Scope of Work</label>
+              <textarea id="form-message" rows="3" required placeholder="Describe your architectural needs, timeline, or design vision..." class="w-full px-3.5 py-2.5 rounded bg-[var(--bg-base)] border border-[var(--border-subtle)] text-sm focus:border-emerald-400 transition-colors"></textarea>
+            </div>
+
+            <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
+              <span id="form-status-msg" class="font-mono text-xs text-[var(--text-muted)]">READY FOR DISPATCH</span>
+              <button type="submit" id="btn-submit-inquire" class="badge-solid px-5 py-2.5 rounded font-mono text-xs font-medium flex items-center gap-2 hover:opacity-90 active:scale-95 transition-all">
+                <span>EXECUTE TRANSMISSION</span>
+                <i data-lucide="send" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+          </form>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ===================================================================
+       FOOTER TELEMETRY
+  =================================================================== -->
+  <footer class="relative z-10 border-t border-[var(--border-subtle)] py-8 bg-[var(--bg-base)]">
+    <div class="max-w-7xl mx-auto px-4 sm:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 font-mono text-xs text-[var(--text-muted)]">
+      <div>
+        © <span id="footer-year">2026</span> <span id="footer-name">AARAV SHARMA</span>. ALL RIGHTS RESERVED.
+      </div>
+      <div class="flex items-center gap-5">
+        <button id="btn-footer-personalize" class="hover:text-[var(--text-primary)] hover:underline">
+          Personalize Identity
+        </button>
+        <a href="#code-inspector-section" class="hover:text-[var(--text-primary)] hover:underline">
+          View Raw Source
+        </a>
+        <a id="footer-github-link" href="https://github.com" target="_blank" rel="noopener noreferrer" class="hover:text-[var(--text-primary)] hover:underline flex items-center gap-1">
+          <span>GitHub</span>
+          <i data-lucide="external-link" class="w-3 h-3"></i>
+        </a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ===================================================================
+       MODAL 1: PERSONALIZE IDENTITY & MANIFEST STUDIO
+  =================================================================== -->
+  <div id="modal-customizer" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm hidden">
+    <div class="folio-panel w-full max-w-xl rounded-xl border border-[var(--border-strong)] p-6 sm:p-8 max-h-[90vh] overflow-y-auto shadow-2xl">
+      <div class="flex items-center justify-between pb-4 border-b border-[var(--border-subtle)]">
+        <div>
+          <span class="font-mono text-[10px] uppercase tracking-widest text-emerald-400">STUDIO STUDIO CONFIGURATOR</span>
+          <h3 class="text-xl font-medium tracking-tight mt-0.5">Personalize Identity & Portfolio</h3>
+        </div>
+        <button id="btn-close-customizer" class="folio-pill p-1.5 rounded hover:border-[var(--border-strong)]">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <form id="form-personalize" class="mt-6 space-y-4 text-sm">
+        <div class="grid grid-cols-3 gap-3">
+          <div class="col-span-2">
+            <label class="block font-mono text-[11px] text-[var(--text-muted)] uppercase mb-1">Your Full Name</label>
+            <input type="text" id="input-custom-name" required class="w-full px-3 py-2 rounded bg-[var(--bg-base)] border border-[var(--border-subtle)] text-sm">
+          </div>
+          <div>
+            <label class="block font-mono text-[11px] text-[var(--text-muted)] uppercase mb-1">Monogram</label>
+            <input type="text" id="input-custom-monogram" required class="w-full px-3 py-2 rounded bg-[var(--bg-base)] border border-[var(--border-subtle)] text-sm font-mono">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-mono text-[11px] text-[var(--text-muted)] uppercase mb-1">Professional Title / Discipline</label>
+          <input type="text" id="input-custom-role" required class="w-full px-3 py-2 rounded bg-[var(--bg-base)] border border-[var(--border-subtle)] text-sm">
+        </div>
+
+        <div>
+          <label class="block font-mono text-[11px] text-[var(--text-muted)] uppercase mb-1">Manifesto / Headline Subtitle</label>
+          <textarea id="input-custom-tagline" rows="2" class="w-full px-3 py-2 rounded bg-[var(--bg-base)] border border-[var(--border-subtle)] text-sm"></textarea>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block font-mono text-[11px] text-[var(--text-muted)] uppercase mb-1">Coordinates / Location</label>
+            <input type="text" id="input-custom-location" class="w-full px-3 py-2 rounded bg-[var(--bg-base)] border border-[var(--border-subtle)] text-xs font-mono">
+          </div>
+          <div>
+            <label class="block font-mono text-[11px] text-[var(--text-muted)] uppercase mb-1">Direct Contact Email</label>
+            <input type="email" id="input-custom-email" required class="w-full px-3 py-2 rounded bg-[var(--bg-base)] border border-[var(--border-subtle)] text-xs font-mono">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-mono text-[11px] text-[var(--text-muted)] uppercase mb-1">GitHub Profile Handle or URL</label>
+          <input type="text" id="input-custom-github" class="w-full px-3 py-2 rounded bg-[var(--bg-base)] border border-[var(--border-subtle)] text-xs font-mono">
+        </div>
+
+        <div class="pt-4 border-t border-[var(--border-subtle)] flex items-center justify-between gap-3">
+          <button type="button" id="btn-reset-default-identity" class="font-mono text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] underline">
+            Restore defaults
+          </button>
+          <button type="submit" class="badge-solid px-5 py-2.5 rounded font-mono text-xs font-medium hover:opacity-90 transition-all">
+            SAVE &amp; APPLY EVERYWHERE
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===================================================================
+       MODAL 2: ADD CUSTOM PROJECT
+  =================================================================== -->
+  <div id="modal-add-project" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm hidden">
+    <div class="folio-panel w-full max-w-lg rounded-xl border border-[var(--border-strong)] p-6 sm:p-8 max-h-[90vh] overflow-y-auto shadow-2xl">
+      <div class="flex items-center justify-between pb-4 border-b border-[var(--border-subtle)]">
+        <div>
+          <span class="font-mono text-[10px] uppercase tracking-widest text-emerald-400">ARTIFACT REGISTRY</span>
+          <h3 class="text-xl font-medium tracking-tight mt-0.5">Append New Project Module</h3>
+        </div>
+        <button id="btn-close-add-project" class="folio-pill p-1.5 rounded hover:border-[var(--border-strong)]">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <form id="form-add-project" class="mt-6 space-y-4 text-sm">
+        <div>
+          <label class="block font-mono text-[11px] text-[var(--text-muted)] uppercase mb-1">Project Title *</label>
+          <input type="text" id="input-proj-title" required placeholder="e.g. Distributed Consensus Mesh" class="w-full px-3 py-2 rounded bg-[var(--bg-base)] border border-[var(--border-subtle)] text-sm">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-mono text-[11px] text-[var(--text-muted)] uppercase mb-1">Domain / Category</label>
+            <input type="text" id="input-proj-category" placeholder="Full-Stack / WebGL" class="w-full px-3 py-2 rounded bg-[var(--bg-base)] border border-[var(--border-subtle)] text-sm">
+          </div>
+          <div>
+            <label class="block font-mono text-[11px] text-[var(--text-muted)] uppercase mb-1">Year</label>
+            <input type="text" id="input-proj-year" value="2026" class="w-full px-3 py-2 rounded bg-[var(--bg-base)] border border-[var(--border-subtle)] text-sm font-mono">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-mono text-[11px] text-[var(--text-muted)] uppercase mb-1">Technical Summary</label>
+          <textarea id="input-proj-summary" rows="2" placeholder="Concise architectural overview of the system..." class="w-full px-3 py-2 rounded bg-[var(--bg-base)] border border-[var(--border-subtle)] text-sm"></textarea>
+        </div>
+
+        <div>
+          <label class="block font-mono text-[11px] text-[var(--text-muted)] uppercase mb-1">Technologies (Comma-separated)</label>
+          <input type="text" id="input-proj-stack" value="TypeScript, Next.js, WebGL" class="w-full px-3 py-2 rounded bg-[var(--bg-base)] border border-[var(--border-subtle)] text-xs font-mono">
+        </div>
+
+        <div>
+          <label class="block font-mono text-[11px] text-[var(--text-muted)] uppercase mb-1">Live URL or Repository</label>
+          <input type="text" id="input-proj-link" placeholder="https://github.com/..." class="w-full px-3 py-2 rounded bg-[var(--bg-base)] border border-[var(--border-subtle)] text-xs font-mono">
+        </div>
+
+        <div class="pt-4 border-t border-[var(--border-subtle)] flex justify-end gap-3">
+          <button type="button" id="btn-cancel-add-project" class="folio-pill px-4 py-2 rounded font-mono text-xs">
+            Cancel
+          </button>
+          <button type="submit" class="badge-solid px-5 py-2 rounded font-mono text-xs font-medium hover:opacity-90">
+            ADD TO PORTFOLIO
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===================================================================
+       FLOATING TOAST NOTIFICATION CONTAINER
+  =================================================================== -->
+  <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- ===================================================================
+       APPLICATION LOGIC & ENGINES (Web Audio, Canvas Physics, State)
+  =================================================================== -->
+  <script>
+    // -----------------------------------------------------------------
+    // 1. TACTILE PROCEDURAL WEB AUDIO SYNTHESIZER
+    // -----------------------------------------------------------------
+    class TactileAudioEngine {
+      constructor() {
+        this.ctx = null;
+        this.muted = false;
+      }
+
+      init() {
+        if (!this.ctx && typeof window !== 'undefined') {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) {
+            this.ctx = new AudioContext();
+          }
+        }
+      }
+
+      playTone(freq = 800, duration = 0.015, type = 'sine', volume = 0.02) {
+        if (this.muted) return;
+        try {
+          this.init();
+          if (!this.ctx) return;
+          if (this.ctx.state === 'suspended') {
+            this.ctx.resume();
+          }
+
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+
+          osc.type = type;
+          osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(freq * 0.35, this.ctx.currentTime + duration);
+
+          gain.gain.setValueAtTime(volume, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
+
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+
+          osc.start();
+          osc.stop(this.ctx.currentTime + duration);
+        } catch (e) {
+          // Autoplay policy or audio context restriction
+        }
+      }
+
+      hover() {
+        this.playTone(1250, 0.012, 'sine', 0.018);
+      }
+
+      click() {
+        this.playTone(480, 0.03, 'triangle', 0.04);
+      }
+
+      toggle() {
+        this.playTone(720, 0.04, 'sine', 0.035);
+      }
+
+      success() {
+        if (this.muted) return;
+        try {
+          this.init();
+          if (!this.ctx) return;
+          [523.25, 659.25, 783.99].forEach((freq, idx) => {
+            setTimeout(() => {
+              this.playTone(freq, 0.05, 'sine', 0.025);
+            }, idx * 45);
+          });
+        } catch(e) {}
+      }
+    }
+
+    const sound = new TactileAudioEngine();
+
+    // -----------------------------------------------------------------
+    // 2. STATE REPOSITORY
+    // -----------------------------------------------------------------
+    const DEFAULT_IDENTITY = {
+      name: 'AARAV SHARMA',
+      monogram: 'AS—26',
+      role: 'SYSTEMS ARCHITECT & DIGITAL CRAFTSMAN',
+      tagline: 'Engineering silent, high-frequency digital interfaces where mathematical precision meets tactile minimalism.',
+      location: '22.7196° N, 75.8577° E // INDORE, IN',
+      email: 'hello@yourdomain.dev',
+      github: 'github.com/aaravsharma/kinetic-folio',
+      status: 'AVAILABLE FOR WORK'
+    };
+
+    const DEFAULT_PROJECTS = [
+      {
+        id: 'SYS-01',
+        title: 'Verlet Kinetic Lattice & Physics Core',
+        category: 'GPU / Mathematics',
+        year: '2026',
+        summary: 'Zero-dependency spatial physics engine using continuous spring-damper constraints, harmonic vibration, and cursor velocity warping.',
+        stack: ['TypeScript', 'HTML5 Canvas', 'Verlet Physics', 'Tailwind'],
+        link: 'https://github.com',
+        metrics: '120 FPS · 0.3ms frame'
+      },
+      {
+        id: 'SYS-02',
+        title: 'Sub-Millisecond Edge Telemetry Mesh',
+        category: 'Distributed Systems',
+        year: '2026',
+        summary: 'Deterministic state synchronization and telemetry pipeline optimized for ultra-low-latency collaborative web canvases.',
+        stack: ['Next.js 15', 'WebSockets', 'Rust WASM', 'Redis'],
+        link: 'https://github.com',
+        metrics: '99.99% Uptime · Edge'
+      },
+      {
+        id: 'SYS-03',
+        title: 'Swiss Kinetic Typographic Synthesizer',
+        category: 'Editorial Design Engineering',
+        year: '2026',
+        summary: 'Procedural variable font optical-sizing engine driven by scroll momentum, viewport curvature, and pointer acceleration.',
+        stack: ['React 19', 'CSS Houdini', 'Spring Motion', 'SVG'],
+        link: 'https://github.com',
+        metrics: 'Optical Axis · 4KB'
+      }
+    ];
+
+    let state = {
+      identity: { ...DEFAULT_IDENTITY },
+      projects: [...DEFAULT_PROJECTS],
+      theme: 'obsidian', // 'obsidian' | 'alabaster' | 'blueprint'
+      canvasMode: 'lattice', // 'lattice' | 'topography' | 'orbital'
+      viewMode: 'grid', // 'grid' | 'list'
+      activeFile: 'App.jsx',
+      pointer: { x: window.innerWidth * 0.5, y: window.innerHeight * 0.4, tx: window.innerWidth * 0.5, ty: window.innerHeight * 0.4, vx: 0, vy: 0, down: false },
+      fps: 60
+    };
+
+    // Load persisted state if exists
+    try {
+      const savedIdentity = localStorage.getItem('folio_identity');
+      if (savedIdentity) state.identity = JSON.parse(savedIdentity);
+      const savedTheme = localStorage.getItem('folio_theme');
+      if (savedTheme) state.theme = savedTheme;
+      const savedProjects = localStorage.getItem('folio_projects');
+      if (savedProjects) state.projects = JSON.parse(savedProjects);
+    } catch(e) {}
+
+    // -----------------------------------------------------------------
+    // 3. CODE REPOSITORY ARCHIVES (Live dynamic source viewer)
+    // -----------------------------------------------------------------
+    function getRepoFiles() {
+      return {
+        'App.jsx': `// Kinetic Portfolio — Systems Architecture
+import React, { useState, useEffect } from 'react';
+import { Sparkles, Terminal, Volume2 } from 'lucide-react';
+
+export default function KineticFolio() {
+  const [identity, setIdentity] = useState({
+    name: "${state.identity.name}",
+    role: "${state.identity.role}",
+    coordinates: "${state.identity.location}"
+  });
+
+  return (
+    <div className="min-h-screen bg-[#09090b] text-[#f4f4f6] font-sans selection:bg-emerald-400 selection:text-black">
+      {/* 60-120FPS Kinetic Background Canvas Component */}
+      <canvas id="kinetic-canvas" className="fixed inset-0 pointer-events-none" />
+
+      <header className="sticky top-0 z-40 backdrop-blur border-b border-white/10 px-8 h-16 flex items-center justify-between">
+        <span className="font-mono text-xs px-2 py-0.5 rounded bg-white text-black font-semibold">
+          ${state.identity.monogram}
+        </span>
+        <span className="font-mono text-xs opacity-60">
+          SYS_STATUS // 200 OK
+        </span>
+      </header>
+
+      <main className="max-w-7xl mx-auto px-8 pt-20">
+        <h1 className="text-6xl font-medium tracking-tight">
+          {identity.name}
+        </h1>
+        <p className="mt-4 text-xl opacity-60 max-w-2xl">
+          ${state.identity.tagline}
+        </p>
+      </main>
+    </div>
+  );
+}`,
+        'README.md': `# Kinetic Folio // Systems Architect Portfolio
+
+A high-craft, ultra-responsive developer portfolio engineered with mathematical minimalism, tactile micro-interactions, and hardware-accelerated canvas aesthetics.
+
+### Architect Identity
+- **Name:** ${state.identity.name} (${state.identity.monogram})
+- **Discipline:** ${state.identity.role}
+- **Coordinates:** ${state.identity.location}
+- **Direct Mail:** ${state.identity.email}
+
+### Technical Stack
+- **Framework:** React 19 / Next.js 15
+- **Styling:** Tailwind CSS with dynamic theme variables
+- **Sound:** Web Audio API Procedural Synthesizer (Zero asset payload)
+- **Canvas Physics:** HTML5 Canvas Verlet & Orbit algorithms (60–120 FPS)
+
+### Quick Start
+\`\`\`bash
+# 1. Install dependencies
+npm install lucide-react
+
+# 2. Run local development engine
+npm run dev
+\`\`\`
+
+MIT License © 2026 ${state.identity.name}`,
+        'package.json': `{
+  "name": "kinetic-folio",
+  "version": "2.4.0",
+  "private": true,
+  "type": "module",
+  "author": "${state.identity.name} <${state.identity.email}>",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "lucide-react": "^0.460.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.16",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.1"
+  }
+}`,
+        'tailwind.config.js': `/** @type {import('tailwindcss').Config} */
+export default {
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  theme: {
+    extend: {
+      fontFamily: {
+        sans: ['"Space Grotesk"', 'Inter', 'sans-serif'],
+        serif: ['"Instrument Serif"', 'Georgia', 'serif'],
+        mono: ['"JetBrains Mono"', 'monospace'],
+      },
+      colors: {
+        brand: {
+          emerald: '#10b981',
+          cyan: '#06b6d4',
+          sky: '#38bdf8'
+        }
+      }
+    },
+  },
+  plugins: [],
+}`
+      };
+    }
+
+    // -----------------------------------------------------------------
+    // 4. TOAST NOTIFICATION UTILITY
+    // -----------------------------------------------------------------
+    function showToast(message, icon = 'check') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = 'toast-anim pointer-events-auto folio-panel px-4 py-2.5 rounded-lg border border-[var(--border-strong)] shadow-xl flex items-center gap-2.5 font-mono text-xs';
+      toast.innerHTML = `
+        <i data-lucide="${icon}" class="w-4 h-4 text-emerald-400"></i>
+        <span>${message}</span>
+      `;
+      container.appendChild(toast);
+      lucide.createIcons();
+
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(8px)';
+        toast.style.transition = 'all 0.2s ease';
+        setTimeout(() => toast.remove(), 200);
+      }, 2600);
+    }
+
+    // -----------------------------------------------------------------
+    // 5. COPY TO CLIPBOARD HELPER
+    // -----------------------------------------------------------------
+    function copyText(text, successMsg = 'Copied to clipboard') {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => {
+          sound.click();
+          showToast(successMsg, 'copy');
+        }).catch(() => fallbackCopy(text, successMsg));
+      } else {
+        fallbackCopy(text, successMsg);
+      }
+    }
+
+    function fallbackCopy(text, successMsg) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand('copy');
+        sound.click();
+        showToast(successMsg, 'copy');
+      } catch (e) {
+        showToast('Clipboard access limited', 'alert-circle');
+      }
+      document.body.removeChild(ta);
+    }
+
+    // -----------------------------------------------------------------
+    // 6. HARDWARE-ACCELERATED KINETIC CANVAS ENGINE
+    // -----------------------------------------------------------------
+    const canvas = document.getElementById('kinetic-canvas');
+    const ctx = canvas.getContext('2d');
+    let width = canvas.width = window.innerWidth;
+    let height = canvas.height = window.innerHeight;
+
+    window.addEventListener('resize', () => {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    });
+
+    const pointer = state.pointer;
+    window.addEventListener('mousemove', (e) => {
+      pointer.vx = e.clientX - pointer.tx;
+      pointer.vy = e.clientY - pointer.ty;
+      pointer.tx = e.clientX;
+      pointer.ty = e.clientY;
+
+      // Update cursor ring directly
+      const follower = document.getElementById('cursor-follower');
+      if (follower) {
+        follower.style.transform = `translate3d(${e.clientX - 14}px, ${e.clientY - 14}px, 0)`;
+      }
+
+      // Telemetry
+      const telPtr = document.getElementById('telemetry-pointer');
+      if (telPtr) {
+        telPtr.innerText = `PTR: ${String(Math.round(e.clientX)).padStart(4, '0')}×${String(Math.round(e.clientY)).padStart(4, '0')}`;
+      }
+    });
+
+    window.addEventListener('mousedown', () => { pointer.down = true; });
+    window.addEventListener('mouseup', () => { pointer.down = false; });
+
+    // Orbital particles pool
+    const particles = Array.from({ length: 48 }, () => ({
+      x: Math.random() * window.innerWidth,
+      y: Math.random() * window.innerHeight,
+      vx: (Math.random() - 0.5) * 0.7,
+      vy: (Math.random() - 0.5) * 0.7,
+      radius: Math.random() * 1.5 + 0.8
+    }));
+
+    let frameCount = 0;
+    let lastTime = performance.now();
+    let timePhase = 0;
+
+    function renderCanvas(now) {
+      frameCount++;
+      if (now - lastTime >= 500) {
+        state.fps = Math.min(120, Math.round((frameCount * 1000) / (now - lastTime)));
+        frameCount = 0;
+        lastTime = now;
+        const fpsElem = document.getElementById('telemetry-fps');
+        if (fpsElem) fpsElem.innerText = `${state.fps} FPS`;
+      }
+
+      timePhase += 0.015;
+
+      // Pointer lerp
+      pointer.x += (pointer.tx - pointer.x) * 0.12;
+      pointer.y += (pointer.ty - pointer.y) * 0.12;
+
+      ctx.clearRect(0, 0, width, height);
+
+      const isAlabaster = state.theme === 'alabaster';
+      const isBlueprint = state.theme === 'blueprint';
+      const rgb = isAlabaster ? '18, 18, 22' : isBlueprint ? '56, 189, 248' : '235, 235, 245';
+
+      // -------------------------------------------------------------
+      // MODE A: KINETIC LATTICE (Interactive Grid Mesh)
+      // -------------------------------------------------------------
+      if (state.canvasMode === 'lattice') {
+        const spacing = width < 768 ? 54 : 44;
+        const cols = Math.ceil(width / spacing) + 1;
+        const rows = Math.ceil(height / spacing) + 1;
+        const maxDist = pointer.down ? 240 : 180;
+
+        for (let r = 0; r < rows; r++) {
+          for (let c = 0; c < cols; c++) {
+            const gx = c * spacing;
+            const gy = r * spacing;
+            const dx = gx - pointer.x;
+            const dy = gy - pointer.y;
+            const dist = Math.hypot(dx, dy);
+
+            let ox = gx;
+            let oy = gy;
+            let alpha = 0.1;
+
+            if (dist < maxDist && dist > 1) {
+              const force = Math.pow(1 - dist / maxDist, 2);
+              const push = pointer.down ? -30 : 25;
+              ox += (dx / dist) * force * push;
+              oy += (dy / dist) * force * push;
+              alpha = 0.12 + force * 0.55;
+            }
+
+            // Harmonic breathing
+            ox += Math.sin(timePhase + r * 0.3) * 1.5;
+            oy += Math.cos(timePhase + c * 0.3) * 1.5;
+
+            ctx.fillStyle = `rgba(${rgb}, ${alpha})`;
+            ctx.beginPath();
+            ctx.arc(ox, oy, dist < maxDist ? 1.7 : 1.1, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Hairline proximity connect
+            if (dist < 100) {
+              ctx.strokeStyle = `rgba(${rgb}, ${(1 - dist / 100) * 0.18})`;
+              ctx.lineWidth = 0.75;
+              ctx.beginPath();
+              ctx.moveTo(ox, oy);
+              ctx.lineTo(pointer.x, pointer.y);
+              ctx.stroke();
+            }
+          }
+        }
+      }
+
+      // -------------------------------------------------------------
+      // MODE B: TOPOGRAPHIC MATRIX (Harmonic Contour Flow)
+      // -------------------------------------------------------------
+      else if (state.canvasMode === 'topography') {
+        const lines = 16;
+        ctx.lineWidth = 0.9;
+        for (let i = 0; i < lines; i++) {
+          const baseY = (height / (lines + 1)) * (i + 1);
+          ctx.strokeStyle = `rgba(${rgb}, ${0.07 + (i % 3) * 0.04})`;
+          ctx.beginPath();
+
+          for (let x = 0; x <= width; x += 22) {
+            const dx = x - pointer.x;
+            const dy = baseY - pointer.y;
+            const dist = Math.hypot(dx, dy);
+            const influence = Math.max(0, 1 - dist / 220);
+
+            const wave =
+              Math.sin(x * 0.005 + timePhase + i * 0.4) * 14 +
+              Math.cos(x * 0.012 - timePhase * 0.7) * 7 +
+              influence * Math.sin(dist * 0.045 - timePhase * 3) * 36;
+
+            if (x === 0) ctx.moveTo(x, baseY + wave);
+            else ctx.lineTo(x, baseY + wave);
+          }
+          ctx.stroke();
+        }
+      }
+
+      // -------------------------------------------------------------
+      // MODE C: ORBITAL CONSTELLATION (Nodes with Interconnects)
+      // -------------------------------------------------------------
+      else if (state.canvasMode === 'orbital') {
+        // Update and draw particles
+        for (let i = 0; i < particles.length; i++) {
+          const p = particles[i];
+          p.x += p.vx;
+          p.y += p.vy;
+
+          if (p.x < 0 || p.x > width) p.vx *= -1;
+          if (p.y < 0 || p.y > height) p.vy *= -1;
+
+          // Pointer interaction
+          const dx = p.x - pointer.x;
+          const dy = p.y - pointer.y;
+          const dist = Math.hypot(dx, dy);
+          if (dist < 140) {
+            p.x += (dx / dist) * 1.5;
+            p.y += (dy / dist) * 1.5;
+          }
+
+          ctx.fillStyle = `rgba(${rgb}, 0.55)`;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Connect nearby nodes
+          for (let j = i + 1; j < particles.length; j++) {
+            const p2 = particles[j];
+            const d = Math.hypot(p.x - p2.x, p.y - p2.y);
+            if (d < 110) {
+              ctx.strokeStyle = `rgba(${rgb}, ${(1 - d / 110) * 0.15})`;
+              ctx.lineWidth = 0.7;
+              ctx.beginPath();
+              ctx.moveTo(p.x, p.y);
+              ctx.lineTo(p2.x, p2.y);
+              ctx.stroke();
+            }
+          }
+        }
+      }
+
+      requestAnimationFrame(renderCanvas);
+    }
+    requestAnimationFrame(renderCanvas);
+
+    // -----------------------------------------------------------------
+    // 7. RENDER METHODS: UI & SECTIONS
+    // -----------------------------------------------------------------
+
+    // Live Clock & Telemetry Loop
+    setInterval(() => {
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      const ms = String(now.getMilliseconds()).padStart(3, '0').slice(0, 2);
+      const telClock = document.getElementById('telemetry-time');
+      if (telClock) telClock.innerText = `CLOCK: ${timeStr}.${ms}`;
+    }, 70);
+
+    // Render Projects List vs Grid
+    function renderProjects() {
+      const container = document.getElementById('projects-container');
+      const counter = document.getElementById('projects-counter-badge');
+      if (!container) return;
+
+      counter.innerText = state.projects.length === 0 ? '00 BLANK SLATE' : `0${state.projects.length} ACTIVE`;
+
+      // Blank Slate Empty State
+      if (state.projects.length === 0) {
+        container.innerHTML = `
+          <div class="p-12 sm:p-16 rounded-xl border border-dashed border-[var(--border-strong)] text-center max-w-2xl mx-auto">
+            <div class="w-10 h-10 rounded-full border border-[var(--border-subtle)] mx-auto flex items-center justify-center mb-3">
+              <i data-lucide="sparkles" class="w-4 h-4 text-emerald-400"></i>
+            </div>
+            <div class="font-mono text-xs uppercase tracking-widest text-[var(--text-muted)]">SLATE 00 // READY FOR FIRST DEPLOYMENT</div>
+            <h3 class="text-2xl font-medium tracking-tight mt-1.5">Fresh Architectural Canvas</h3>
+            <p class="text-sm text-[var(--text-muted)] mt-2 leading-relaxed">
+              All legacy projects have been cleared. You now have a clean minimalist canvas ready to showcase your own bespoke artifacts.
+            </p>
+            <div class="mt-6 flex flex-wrap items-center justify-center gap-3">
+              <button id="btn-empty-add-proj" class="badge-solid px-4 py-2.5 rounded font-mono text-xs font-medium flex items-center gap-2">
+                <i data-lucide="plus" class="w-4 h-4"></i>
+                <span>ADD YOUR FIRST PROJECT</span>
+              </button>
+              <button id="btn-empty-restore-defaults" class="folio-pill px-4 py-2.5 rounded font-mono text-xs flex items-center gap-2">
+                <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                <span>RESTORE 3 SAMPLES</span>
+              </button>
+            </div>
+          </div>
+        `;
+        lucide.createIcons();
+        document.getElementById('btn-empty-add-proj')?.addEventListener('click', () => openAddProjectModal());
+        document.getElementById('btn-empty-restore-defaults')?.addEventListener('click', () => {
+          state.projects = [...DEFAULT_PROJECTS];
+          persistProjects();
+          renderProjects();
+          sound.success();
+          showToast('Sample projects restored', 'refresh-cw');
+        });
+        return;
+      }
+
+      // View A: Bento Grid
+      if (state.viewMode === 'grid') {
+        let html = '<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">';
+        state.projects.forEach((item, index) => {
+          html += `
+            <div class="folio-card p-6 rounded-lg flex flex-col justify-between group">
+              <div>
+                <div class="flex items-center justify-between font-mono text-xs text-[var(--text-muted)] mb-4">
+                  <span>${item.id} // ${item.category}</span>
+                  <span>${item.year}</span>
+                </div>
+
+                <!-- Interactive Card Micro-Visualizer -->
+                <div class="h-28 w-full rounded border border-[var(--border-subtle)] bg-[var(--bg-base)]/50 p-3 flex flex-col justify-between mb-4 overflow-hidden relative">
+                  <div class="flex justify-between items-center font-mono text-[10px] text-[var(--text-muted)]">
+                    <span>TELEMETRY_LATENCY</span>
+                    <span class="text-emerald-400">${item.metrics}</span>
+                  </div>
+                  <!-- Abstract Soundwave Bars -->
+                  <div class="flex items-end gap-1.5 h-12 w-full pt-2">
+                    ${[35, 75, 45, 90, 60, 30, 85, 40, 70, 95, 50, 65, 80]
+                      .map((h, i) => `<div class="flex-1 bg-current opacity-25 rounded-t-sm transition-all duration-300 group-hover:opacity-80" style="height: ${h}%"></div>`)
+                      .join('')}
+                  </div>
+                  <div class="text-[9px] font-mono text-[var(--text-muted)] uppercase tracking-wider">
+                    MODULE STATUS: STABLE
+                  </div>
+                </div>
+
+                <h3 class="text-xl font-medium tracking-tight mt-1 group-hover:text-emerald-400 transition-colors">
+                  ${item.title}
+                </h3>
+                <p class="text-xs text-[var(--text-muted)] mt-2 leading-relaxed">
+                  ${item.summary}
+                </p>
+              </div>
+
+              <div class="mt-6 pt-4 border-t border-[var(--border-subtle)] flex items-center justify-between gap-2">
+                <div class="flex flex-wrap gap-1">
+                  ${item.stack.slice(0, 3).map(tech => `<span class="font-mono text-[10px] px-2 py-0.5 rounded bg-[var(--bg-base)] border border-[var(--border-subtle)] text-[var(--text-muted)]">${tech}</span>`).join('')}
+                </div>
+                <div class="flex items-center gap-1">
+                  <button class="btn-delete-project p-1.5 rounded hover:text-rose-400 text-[var(--text-muted)] transition-colors" data-id="${item.id}" title="Remove project">
+                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                  </button>
+                  <a href="${item.link}" target="_blank" rel="noopener noreferrer" class="p-1.5 rounded hover:text-emerald-400 transition-colors">
+                    <i data-lucide="arrow-up-right" class="w-4 h-4"></i>
+                  </a>
+                </div>
+              </div>
+            </div>
+          `;
+        });
+        html += '</div>';
+        container.innerHTML = html;
+      }
+
+      // View B: Minimalist Ledger List
+      else {
+        let html = '<div class="divide-y divide-[var(--border-subtle)]">';
+        state.projects.forEach((item) => {
+          html += `
+            <div class="py-6 group flex flex-col lg:flex-row lg:items-center justify-between gap-4 cursor-pointer hover:pl-2 transition-all">
+              <div class="flex items-start sm:items-center gap-6">
+                <span class="font-mono text-xs text-[var(--text-muted)] group-hover:text-emerald-400 transition-colors">${item.id}</span>
+                <div>
+                  <div class="flex items-center gap-3">
+                    <h3 class="text-lg sm:text-xl font-medium tracking-tight group-hover:translate-x-1 transition-transform">
+                      ${item.title}
+                    </h3>
+                    <span class="font-mono text-[10px] px-2 py-0.5 rounded folio-pill text-[var(--text-muted)]">
+                      ${item.year}
+                    </span>
+                  </div>
+                  <p class="text-xs text-[var(--text-muted)] mt-1 max-w-2xl leading-relaxed">
+                    ${item.summary}
+                  </p>
+                </div>
+              </div>
+
+              <div class="flex flex-wrap sm:flex-nowrap items-center justify-between lg:justify-end gap-5 pl-10 lg:pl-0">
+                <div class="flex flex-wrap gap-1">
+                  ${item.stack.map(tech => `<span class="font-mono text-[10px] px-2 py-0.5 rounded bg-[var(--bg-base)] border border-[var(--border-subtle)] text-[var(--text-muted)]">${tech}</span>`).join('')}
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="font-mono text-xs text-[var(--text-muted)] hidden xl:inline">${item.metrics}</span>
+                  <button class="btn-delete-project p-1.5 rounded hover:text-rose-400 text-[var(--text-muted)] transition-colors" data-id="${item.id}" title="Remove project">
+                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                  </button>
+                  <a href="${item.link}" target="_blank" rel="noopener noreferrer" class="p-1.5 rounded border border-[var(--border-subtle)] group-hover:border-emerald-400 transition-colors">
+                    <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i>
+                  </a>
+                </div>
+              </div>
+            </div>
+          `;
+        });
+        html += '</div>';
+        container.innerHTML = html;
+      }
+
+      lucide.createIcons();
+
+      // Attach dynamic delete listeners
+      document.querySelectorAll('.btn-delete-project').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const id = btn.getAttribute('data-id');
+          state.projects = state.projects.filter(p => p.id !== id);
+          persistProjects();
+          renderProjects();
+          sound.click();
+          showToast(`Artifact ${id} removed`, 'trash-2');
+        });
+      });
+    }
+
+    // Render Code Inspector
+    function renderCodeInspector() {
+      const display = document.getElementById('code-display-block');
+      const stats = document.getElementById('inspector-file-stats');
+      const files = getRepoFiles();
+      const code = files[state.activeFile] || '// Empty File';
+      
+      if (display) {
+        display.innerHTML = `<code>${escapeHtml(code)}</code>`;
+      }
+
+      if (stats) {
+        const lines = code.split('\n').length;
+        stats.innerText = `${lines} LINES · UTF-8 · ${state.activeFile}`;
+      }
+
+      // Update Tab Styles
+      document.querySelectorAll('.code-tab-btn').forEach(btn => {
+        const file = btn.getAttribute('data-file');
+        if (file === state.activeFile) {
+          btn.className = 'code-tab-btn px-3 py-1.5 rounded font-mono text-xs flex items-center gap-2 badge-solid transition-all';
+        } else {
+          btn.className = 'code-tab-btn px-3 py-1.5 rounded font-mono text-xs flex items-center gap-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-all';
+        }
+      });
+    }
+
+    function escapeHtml(string) {
+      return String(string)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    // Sync Identity Everywhere in DOM
+    function updateIdentityDOM() {
+      const id = state.identity;
+      document.title = `${id.name} — ${id.role}`;
+      
+      const setVal = (elId, val) => {
+        const el = document.getElementById(elId);
+        if (el) el.innerText = val;
+      };
+
+      setVal('header-monogram', id.monogram);
+      setVal('header-name', id.name);
+      setVal('header-status', id.status);
+      setVal('strip-location', id.location);
+      setVal('hero-role-badge', id.role);
+      setVal('hero-tagline', id.tagline);
+      setVal('hero-email-label', id.email);
+      setVal('contact-email-display', id.email);
+      setVal('footer-name', id.name);
+
+      const ghLink = document.getElementById('footer-github-link');
+      if (ghLink) {
+        ghLink.href = id.github.startsWith('http') ? id.github : `https://${id.github}`;
+      }
+
+      // Also refresh code viewer since identity is embedded in App.jsx & README.md
+      renderCodeInspector();
+    }
+
+    function persistIdentity() {
+      try {
+        localStorage.setItem('folio_identity', JSON.stringify(state.identity));
+      } catch(e) {}
+    }
+
+    function persistProjects() {
+      try {
+        localStorage.setItem('folio_projects', JSON.stringify(state.projects));
+      } catch(e) {}
+    }
+
+    // -----------------------------------------------------------------
+    // 8. MODAL CONTROLS & INTERACTION WIRING
+    // -----------------------------------------------------------------
+    const customizerModal = document.getElementById('modal-customizer');
+    const addProjectModal = document.getElementById('modal-add-project');
+
+    function openCustomizerModal() {
+      sound.click();
+      document.getElementById('input-custom-name').value = state.identity.name;
+      document.getElementById('input-custom-monogram').value = state.identity.monogram;
+      document.getElementById('input-custom-role').value = state.identity.role;
+      document.getElementById('input-custom-tagline').value = state.identity.tagline;
+      document.getElementById('input-custom-location').value = state.identity.location;
+      document.getElementById('input-custom-email').value = state.identity.email;
+      document.getElementById('input-custom-github').value = state.identity.github;
+      customizerModal.classList.remove('hidden');
+    }
+
+    function closeCustomizerModal() {
+      sound.click();
+      customizerModal.classList.add('hidden');
+    }
+
+    function openAddProjectModal() {
+      sound.click();
+      addProjectModal.classList.remove('hidden');
+    }
+
+    function closeAddProjectModal() {
+      sound.click();
+      addProjectModal.classList.add('hidden');
+    }
+
+    // -----------------------------------------------------------------
+    // 9. EVENT LISTENERS
+    // -----------------------------------------------------------------
+    document.addEventListener('DOMContentLoaded', () => {
+      // Initialize Lucide Icons
+      lucide.createIcons();
+
+      // Sync initial state
+      document.body.setAttribute('data-theme', state.theme);
+      updateIdentityDOM();
+      renderProjects();
+      renderCodeInspector();
+
+      // Top Header Triggers
+      document.getElementById('btn-open-customizer')?.addEventListener('click', openCustomizerModal);
+      document.getElementById('btn-open-customizer-brand')?.addEventListener('click', openCustomizerModal);
+      document.getElementById('btn-close-customizer')?.addEventListener('click', closeCustomizerModal);
+      document.getElementById('btn-footer-personalize')?.addEventListener('click', openCustomizerModal);
+
+      // Theme Polarity Switcher
+      document.getElementById('btn-cycle-theme')?.addEventListener('click', () => {
+        sound.toggle();
+        const themes = ['obsidian', 'alabaster', 'blueprint'];
+        const nextTheme = themes[(themes.indexOf(state.theme) + 1) % themes.length];
+        state.theme = nextTheme;
+        document.body.setAttribute('data-theme', nextTheme);
+        try { localStorage.setItem('folio_theme', nextTheme); } catch(e) {}
+
+        const icon = document.getElementById('icon-theme');
+        if (icon) {
+          icon.setAttribute('data-lucide', nextTheme === 'alabaster' ? 'sun' : nextTheme === 'blueprint' ? 'compass' : 'moon');
+          lucide.createIcons();
+        }
+        showToast(`Theme switched: ${nextTheme.toUpperCase()}`, 'palette');
+      });
+
+      // Canvas Mode Switcher
+      document.getElementById('btn-cycle-canvas')?.addEventListener('click', () => {
+        sound.toggle();
+        const modes = ['lattice', 'topography', 'orbital'];
+        const nextMode = modes[(modes.indexOf(state.canvasMode) + 1) % modes.length];
+        state.canvasMode = nextMode;
+        const label = document.getElementById('label-canvas-mode');
+        if (label) label.innerText = nextMode.toUpperCase();
+        showToast(`Canvas Shader: ${nextMode.toUpperCase()}`, 'sparkles');
+      });
+
+      // Sound Toggle
+      document.getElementById('btn-toggle-sound')?.addEventListener('click', () => {
+        state.soundMuted = !state.soundMuted;
+        sound.muted = state.soundMuted;
+        const icon = document.getElementById('icon-sound');
+        if (icon) {
+          icon.setAttribute('data-lucide', sound.muted ? 'volume-x' : 'volume-2');
+          icon.className = sound.muted ? 'w-4 h-4 opacity-50' : 'w-4 h-4 text-emerald-400';
+          lucide.createIcons();
+        }
+        if (!sound.muted) sound.click();
+        showToast(sound.muted ? 'Tactile Sound: MUTED' : 'Tactile Sound: ACTIVE', sound.muted ? 'volume-x' : 'volume-2');
+      });
+
+      // Personalize Identity Form Submission
+      document.getElementById('form-personalize')?.addEventListener('submit', (e) => {
+        e.preventDefault();
+        state.identity.name = document.getElementById('input-custom-name').value.trim();
+        state.identity.monogram = document.getElementById('input-custom-monogram').value.trim() || 'AS—26';
+        state.identity.role = document.getElementById('input-custom-role').value.trim();
+        state.identity.tagline = document.getElementById('input-custom-tagline').value.trim();
+        state.identity.location = document.getElementById('input-custom-location').value.trim();
+        state.identity.email = document.getElementById('input-custom-email').value.trim();
+        state.identity.github = document.getElementById('input-custom-github').value.trim();
+
+        persistIdentity();
+        updateIdentityDOM();
+        closeCustomizerModal();
+        sound.success();
+        showToast('Identity updated across all modules', 'check-circle');
+      });
+
+      // Restore Default Identity
+      document.getElementById('btn-reset-default-identity')?.addEventListener('click', () => {
+        state.identity = { ...DEFAULT_IDENTITY };
+        persistIdentity();
+        updateIdentityDOM();
+        closeCustomizerModal();
+        sound.click();
+        showToast('Default identity restored', 'refresh-cw');
+      });
+
+      // View Switcher (Grid vs List)
+      document.getElementById('btn-view-grid')?.addEventListener('click', () => {
+        sound.click();
+        state.viewMode = 'grid';
+        document.getElementById('btn-view-grid').className = 'px-2.5 py-1 rounded text-xs font-mono flex items-center gap-1.5 transition-all badge-solid';
+        document.getElementById('btn-view-list').className = 'px-2.5 py-1 rounded text-xs font-mono flex items-center gap-1.5 transition-all text-[var(--text-muted)] hover:text-[var(--text-primary)]';
+        renderProjects();
+      });
+
+      document.getElementById('btn-view-list')?.addEventListener('click', () => {
+        sound.click();
+        state.viewMode = 'list';
+        document.getElementById('btn-view-list').className = 'px-2.5 py-1 rounded text-xs font-mono flex items-center gap-1.5 transition-all badge-solid';
+        document.getElementById('btn-view-grid').className = 'px-2.5 py-1 rounded text-xs font-mono flex items-center gap-1.5 transition-all text-[var(--text-muted)] hover:text-[var(--text-primary)]';
+        renderProjects();
+      });
+
+      // Add Project Modal Triggers
+      document.getElementById('btn-open-add-project')?.addEventListener('click', openAddProjectModal);
+      document.getElementById('btn-close-add-project')?.addEventListener('click', closeAddProjectModal);
+      document.getElementById('btn-cancel-add-project')?.addEventListener('click', closeAddProjectModal);
+
+      // Add Project Form Submission
+      document.getElementById('form-add-project')?.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const title = document.getElementById('input-proj-title').value.trim();
+        if (!title) return;
+
+        const newProj = {
+          id: `SYS-0${state.projects.length + 1}`,
+          title: title,
+          category: document.getElementById('input-proj-category').value.trim() || 'Interactive System',
+          year: document.getElementById('input-proj-year').value.trim() || '2026',
+          summary: document.getElementById('input-proj-summary').value.trim() || 'Custom architecture and high-performance module.',
+          stack: document.getElementById('input-proj-stack').value.split(',').map(s => s.trim()).filter(Boolean),
+          link: document.getElementById('input-proj-link').value.trim() || 'https://github.com',
+          metrics: 'Custom · Active'
+        };
+
+        state.projects.push(newProj);
+        persistProjects();
+        renderProjects();
+        closeAddProjectModal();
+        sound.success();
+        showToast(`Artifact ${newProj.id} appended to directory`, 'plus-circle');
+      });
+
+      // Reset Slate to Empty Canvas
+      document.getElementById('btn-reset-slate')?.addEventListener('click', () => {
+        sound.click();
+        if (state.projects.length > 0) {
+          state.projects = [];
+          persistProjects();
+          renderProjects();
+          showToast('Cleared to Pure Zero-Project Slate', 'eraser');
+        } else {
+          state.projects = [...DEFAULT_PROJECTS];
+          persistProjects();
+          renderProjects();
+          showToast('Default projects restored', 'refresh-cw');
+        }
+      });
+
+      // Code Tab Buttons
+      document.querySelectorAll('.code-tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          sound.click();
+          state.activeFile = btn.getAttribute('data-file');
+          renderCodeInspector();
+        });
+      });
+
+      // Copy Active Code File
+      document.getElementById('btn-copy-active-file')?.addEventListener('click', () => {
+        const files = getRepoFiles();
+        const code = files[state.activeFile] || '';
+        copyText(code, `Copied ${state.activeFile} to clipboard`);
+      });
+
+      // Copy Install Command
+      document.getElementById('btn-copy-install-cmd')?.addEventListener('click', () => {
+        copyText('npm create vite@latest folio -- --template react && cd folio && npm i lucide-react', 'Copied setup terminal command');
+      });
+
+      // Hero Email Copy
+      document.getElementById('btn-hero-copy-email')?.addEventListener('click', () => {
+        copyText(state.identity.email, `Copied email: ${state.identity.email}`);
+      });
+
+      // Terminal Inquiry Form Submission
+      document.getElementById('inquiry-form')?.addEventListener('submit', (e) => {
+        e.preventDefault();
+        sound.success();
+        const btn = document.getElementById('btn-submit-inquire');
+        const statusMsg = document.getElementById('form-status-msg');
+        
+        btn.disabled = true;
+        btn.innerHTML = `<i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i><span>TRANSMISSION ROUTED</span>`;
+        statusMsg.innerText = `STATUS 200: Encrypted packet delivered to ${state.identity.email}`;
+        lucide.createIcons();
+        showToast('Inquiry transmission executed successfully', 'send');
+
+        setTimeout(() => {
+          btn.disabled = false;
+          btn.innerHTML = `<span>EXECUTE TRANSMISSION</span><i data-lucide="send" class="w-3.5 h-3.5"></i>`;
+          statusMsg.innerText = 'READY FOR DISPATCH';
+          document.getElementById('inquiry-form').reset();
+          lucide.createIcons();
+        }, 4000);
+      });
+
+      // Tactile sound trigger on all buttons and links
+      document.querySelectorAll('button, a').forEach(el => {
+        el.addEventListener('mouseenter', () => sound.hover());
+      });
+
+      // Keyboard Shortcuts (1/2 for view, C for canvas, T for theme, M for sound, P for personalize, Esc to close modals)
+      window.addEventListener('keydown', (e) => {
+        if (['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) return;
+        if (e.key === 'Escape') {
+          closeCustomizerModal();
+          closeAddProjectModal();
+        } else if (e.key === '1') {
+          document.getElementById('btn-view-grid')?.click();
+        } else if (e.key === '2') {
+          document.getElementById('btn-view-list')?.click();
+        } else if (e.key.toLowerCase() === 'c') {
+          document.getElementById('btn-cycle-canvas')?.click();
+        } else if (e.key.toLowerCase() === 't') {
+          document.getElementById('btn-cycle-theme')?.click();
+        } else if (e.key.toLowerCase() === 'm') {
+          document.getElementById('btn-toggle-sound')?.click();
+        } else if (e.key.toLowerCase() === 'p') {
+          openCustomizerModal();
+        }
+      });
+    });
+  </script>
+</body>
+</html>
